@@ -62,6 +62,8 @@ html, body {
     height: var(--base-h);
     display: none; /* Hidden by default */
     z-index: 2;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out, transform 0.6s ease-in-out;
 }
 
 #grid {
@@ -117,39 +119,50 @@ html, body {
 
 .header-logo {
     width: clamp(120px, 37.5vmin, 225px);
+    filter: drop-shadow(0 4px 20px rgba(0,0,0,0.4)) drop-shadow(0 2px 15px rgba(0,0,0,0.4));
 }
 
 #attempts-counter {
     position: absolute;
+    top: clamp(60px, 15vmin, 120px);
     right: clamp(10px, 2.5vmin, 20px);
     background-color: rgba(0, 0, 0, 0.7);
     padding: clamp(5px, 1.5vmin, 10px) clamp(10px, 2.5vmin, 20px);
     border-radius: clamp(10px, 2vw, 20px);
+    font-size: clamp(14px, 3.5vmin, 18px);
+    font-weight: bold;
+    text-align: center;
+    min-width: clamp(80px, 20vmin, 120px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .modal {
     background-color: rgba(255, 255, 255, 0.8);
     color: #333;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    padding: clamp(15px, 4vw, 25px);
-    border-radius: 25px;
-    width: clamp(280px, 85vmin, 500px);
+    padding: clamp(18px, 4.8vw, 30px);
+    border-radius: 30px;
+    width: clamp(336px, 102vmin, 600px);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition: opacity 0.8s ease-out, transform 0.7s ease-out;
 }
 
 #task-modal {
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
 }
 
 #info-modal {
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(0.9);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(15px, 3vmin, 20px);
+    gap: clamp(18px, 3.6vmin, 24px);
 }
 
 #info-modal-retry-btn {
@@ -197,7 +210,7 @@ html, body {
     gap: clamp(5px, 1.5vh, 10px);
     transform: translate(-50%, -50%); /* Center the container on its coordinates */
     opacity: 0; /* Hidden by default for sequential appearance */
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity 0.8s ease-in-out, transform 0.6s ease-in-out;
     z-index: 4;
     /* This container is now just for positioning */
 }
@@ -290,13 +303,15 @@ html, body {
 
     background-color: rgba(255, 255, 255, 0.95);
     color: #333;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    padding: clamp(10px, 2.5vmin, 15px) clamp(15px, 4vmin, 25px);
-    border-radius: clamp(10px, 2vmin, 15px);
-    font-size: clamp(16px, 4vmin, 22px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.3), 0 0 8px rgba(0,0,0,0.2);
+    padding: clamp(14px, 3.5vmin, 20px) clamp(20px, 5.5vmin, 32px);
+    border-radius: clamp(12px, 2.5vmin, 18px);
+    font-size: clamp(18px, 4.5vmin, 26px);
     font-weight: bold;
     min-height: auto;
     visibility: hidden; /* show with JS */
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out, transform 0.5s ease-in-out;
 }
 
 /* Individual positioning for each info popup */
@@ -423,6 +438,17 @@ html, body {
         white-space: normal; /* Allow text wrapping */
         word-wrap: break-word; /* Break long words if needed */
         box-sizing: border-box;
+    }
+
+    /* Attempts counter 2x larger on portrait */
+    #attempts-counter {
+        top: clamp(120px, 30vmin, 240px);
+        right: clamp(20px, 5vmin, 40px);
+        padding: clamp(10px, 3vmin, 20px) clamp(20px, 5vmin, 40px);
+        border-radius: clamp(20px, 4vw, 40px);
+        font-size: clamp(28px, 7vmin, 36px);
+        min-width: clamp(160px, 40vmin, 240px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
     /* Final card 2x larger on portrait */
@@ -658,13 +684,14 @@ function initGame() {
         const container = choiceContainers[currentChoice];
         container.style.opacity = '1';
         
-        // Show transport type label immediately
+        // Show transport type label with smooth transition
         const labels = {
             car: 'Авто',
             bus: 'Автобус',
             people: 'Пешком'
         };
         choiceInfos[currentChoice].style.visibility = 'visible';
+        choiceInfos[currentChoice].style.opacity = '1';
         choiceInfos[currentChoice].textContent = labels[currentChoice];
         
         // Position and show hand hint using CSS classes
@@ -676,10 +703,14 @@ function initGame() {
         attemptsCounter.innerHTML = `Попыток: <span>${GAME_STATE.attempts}</span>`;
     }
 
-    // Hide all routes
-    function hideAllRoutes() {
+    // Hide all routes with smooth transition (except walking route on win)
+    function hideAllRoutes(excludeWalking = false) {
         for (const key in routes) {
-            routes[key].style.display = 'none';
+            if (excludeWalking && key === 'people') continue; // Don't hide walking route on win
+            routes[key].style.opacity = '0';
+            setTimeout(() => {
+                routes[key].style.display = 'none';
+            }, 800); // Wait for transition to complete
         }
     }
 
@@ -689,7 +720,6 @@ function initGame() {
 
         handHint.className = ''; // Hide hand
         taskModal.classList.add('hidden');
-        hideAllRoutes();
         infoModal.classList.add('hidden');
 
         if (choice === 'people') {
@@ -701,16 +731,25 @@ function initGame() {
         updateAttempts();
 
         routes[choice].style.display = 'block';
+        // Force reflow to ensure display change is applied before opacity transition
+        routes[choice].offsetHeight;
+        routes[choice].style.opacity = '1';
 
         if (choice === 'car') {
             choiceInfos.car.textContent = '3 км, 35 мин';
+            choiceInfos.car.style.opacity = '1';
             infoModalText.textContent = 'Сейчас большая пробка, попробуйте еще раз';
             infoModal.classList.remove('hidden');
+            infoModal.style.opacity = '1';
+            infoModal.style.transform = 'translate(-50%, -50%) scale(1)';
             GAME_STATE.step = 'bus';
         } else if (choice === 'bus') {
             choiceInfos.bus.textContent = '3 км,45 мин';
+            choiceInfos.bus.style.opacity = '1';
             infoModalText.textContent = 'Автобус будет через 15 минут, попробуйте еще раз.';
             infoModal.classList.remove('hidden');
+            infoModal.style.opacity = '1';
+            infoModal.style.transform = 'translate(-50%, -50%) scale(1)';
             GAME_STATE.step = 'people';
         }
         
@@ -722,7 +761,12 @@ function initGame() {
         } else {
             // Auto-hide info modal and show next choice
             setTimeout(() => {
-                infoModal.classList.add('hidden');
+                infoModal.style.opacity = '0';
+                infoModal.style.transform = 'translate(-50%, -50%) scale(0.9)';
+                setTimeout(() => {
+                    infoModal.classList.add('hidden');
+                }, 800); // Wait for transition to complete
+                hideAllRoutes(); // Hide previous route when showing next choice
                 showNextChoice();
             }, 2000);
         }
@@ -730,25 +774,35 @@ function initGame() {
 
     function handleWin() {
         GAME_STATE.gameOver = true;
-        hideAllRoutes();
+        hideAllRoutes(true); // Don't hide walking route on win
         infoModal.classList.add('hidden');
 
         routes.people.style.display = 'block';
+        // Force reflow to ensure display change is applied before opacity transition
+        routes.people.offsetHeight;
+        routes.people.style.opacity = '1';
         const routeInfo = '2,2 км, 18 мин';
         choiceInfos.people.textContent = routeInfo;
+        choiceInfos.people.style.opacity = '1';
         
         infoModalText.textContent = `Ура вы угадали! Маршрут пешком займет ${routeInfo}.`;
         infoModal.classList.remove('hidden');
+        infoModal.style.opacity = '1';
+        infoModal.style.transform = 'translate(-50%, -50%) scale(1)';
 
         setTimeout(() => {
-            infoModal.classList.add('hidden');
-            // Hide UI exactly when final screen appears so logo stays until then
-            document.getElementById('bottom-ui').classList.add('hidden');
-            document.getElementById('top-ui').classList.add('hidden');
-            finalScreen.classList.remove('hidden');
-            finalCard.classList.remove('hidden');
-            // Start confetti only when the darkened final screen appears
-            playConfetti();
+            infoModal.style.opacity = '0';
+            infoModal.style.transform = 'translate(-50%, -50%) scale(0.9)';
+            setTimeout(() => {
+                infoModal.classList.add('hidden');
+                // Hide UI exactly when final screen appears so logo stays until then
+                document.getElementById('bottom-ui').classList.add('hidden');
+                document.getElementById('top-ui').classList.add('hidden');
+                finalScreen.classList.remove('hidden');
+                finalCard.classList.remove('hidden');
+                // Start confetti only when the darkened final screen appears
+                playConfetti();
+            }, 800); // Wait for transition to complete
         }, 3000);
     }
 
@@ -784,9 +838,38 @@ function initGame() {
     }
 
     function openStore() {
-        // This function should be used for the final CTA.
-        // Ad networks will replace this with their own open store methods.
-        window.open('https://play.google.com/store/apps/details?id=ru.dublgis.dgismobile', '_blank');
+        // Use injected defines when available (playable-scripts build.json)
+        const fallbackUrl = 'https://play.google.com/store/apps/details?id=ru.dublgis.dgismobile';
+        const url = (typeof GOOGLE_PLAY_URL !== 'undefined') ? GOOGLE_PLAY_URL : fallbackUrl;
+
+        // Try MRAID
+        if (window.mraid && typeof window.mraid.open === 'function') {
+            try { window.mraid.open(url); return; } catch (e) {}
+        }
+        // Try Google ExitApi
+        if (window.ExitApi && typeof window.ExitApi.exit === 'function') {
+            try { window.ExitApi.exit(); return; } catch (e) {}
+        }
+        // Try Facebook Playable helper
+        if (window.FBPlayableAds && typeof window.FBPlayableAds.openAppStore === 'function') {
+            try { window.FBPlayableAds.openAppStore(); return; } catch (e) {}
+        }
+        // Fallback
+        window.open(url, '_blank');
+    }
+
+    // Visibility handling for MRAID/DAPI and browser fallback
+    function onVisibleChange(isVisible) {
+        // Pause/resume timers/animations if needed
+        // Intentionally minimal to avoid changing gameplay logic
+    }
+    if (window.mraid) {
+        try {
+            window.mraid.addEventListener('viewableChange', onVisibleChange);
+            onVisibleChange(window.mraid.isViewable());
+        } catch (e) {}
+    } else {
+        document.addEventListener('visibilitychange', () => onVisibleChange(!document.hidden));
     }
 
     // Initial setup
